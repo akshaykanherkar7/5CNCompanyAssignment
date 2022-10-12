@@ -1,5 +1,6 @@
 var axios = require("axios");
 const express = require("express");
+const { findOne } = require("../Models/User.model");
 const GithubController = express.Router();
 
 const UserModel = require("../Models/User.model");
@@ -99,6 +100,15 @@ GithubController.post("/:username", async (req, res) => {
   //   res.send(200);
 });
 
+GithubController.get("/", async (req, res) => {
+  const { value, order } = req.query;
+  console.log("value:", value);
+  console.log("orders:", order);
+  let sorted_data = await UserModel.find().sort({ value: 1 });
+  console.log("sorted_data:", sorted_data);
+  return res.status(200).send({ sorted_data: sorted_data });
+});
+
 GithubController.get("/search", async (req, res) => {
   const { username, location } = req.query;
   console.log("username:", username);
@@ -116,9 +126,37 @@ GithubController.get("/search", async (req, res) => {
   return res.status(500).send("Can't find user");
 });
 
-GithubController.delete("/:username", async (req,res) => {
-    const {username} = req.params;
-    const deleted_user = a 
-})
+GithubController.patch("/:username", async (req, res) => {
+  const { username } = req.params;
+  const user = await UserModel.findOne({ login: username });
+  if (!user) {
+    return res.status(404).send("User not found");
+  }
+  const updated_user = await UserModel.findOneAndUpdate(
+    { login: username },
+    req.body,
+    { new: true }
+  );
+  return res.status(200).send({
+    message: "User Detail Updated Successfully",
+    project: updated_user,
+  });
+});
+
+GithubController.delete("/:username", async (req, res) => {
+  const { username } = req.params;
+  const user = await UserModel.findOne({ login: username });
+  if (!user) {
+    return res.status(404).send("User not found");
+  }
+  const deleted_user = await UserModel.findOneAndDelete(
+    { login: username },
+    { new: true }
+  );
+  return res.status(200).send({
+    message: "User Data Deleted Successfully",
+    deleted_user: deleted_user,
+  });
+});
 
 module.exports = GithubController;
