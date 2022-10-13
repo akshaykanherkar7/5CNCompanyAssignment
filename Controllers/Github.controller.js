@@ -38,7 +38,6 @@ GithubController.post("/:username/mutual", async (req, res) => {
 
   axios(config)
     .then(async function (response) {
-      // console.log(JSON.stringify(response.data));
       if (response.data) {
         followers = response.data;
       }
