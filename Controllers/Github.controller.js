@@ -1,9 +1,108 @@
 var axios = require("axios");
 const express = require("express");
-const { findOne } = require("../Models/User.model");
 const GithubController = express.Router();
 
 const UserModel = require("../Models/User.model");
+const MutualModel = require("../Models/Mutual.model");
+
+GithubController.post("/:username/mutual", async (req, res) => {
+  const { username } = req.params;
+  var following = [];
+  var followers = [];
+  let MutualFriends = [];
+  var axios = require("axios");
+
+  var config = {
+    method: "get",
+    url: `https://api.github.com/users/${username}/following`,
+    headers: {},
+  };
+
+  axios(config)
+    .then(async function (response) {
+      // console.log(JSON.stringify(response.data));
+      if (response.data) {
+        following = response.data;
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+      return res.status(404).send("Error in Mutual Friends Saving");
+    });
+
+  var config = {
+    method: "get",
+    url: `https://api.github.com/users/${username}/followers`,
+    headers: {},
+  };
+
+  axios(config)
+    .then(async function (response) {
+      // console.log(JSON.stringify(response.data));
+      if (response.data) {
+        followers = response.data;
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+  setTimeout(async () => {
+    for (let i = 0; i < followers.length; i++) {
+      for (let j = 0; j < following.length; j++) {
+        if (followers[i].login === following[j].login) {
+          MutualFriends.push(followers[i]);
+        }
+      }
+    }
+    console.log("Mutual Friends: ", MutualFriends);
+    for (let i = 0; i < MutualFriends.length; i++) {
+      const {
+        login,
+        id,
+        node_id,
+        avatar_url,
+        gravatar_id,
+        url,
+        html_url,
+        followers_url,
+        following_url,
+        gists_url,
+        starred_url,
+        subscriptions_url,
+        organizations_url,
+        repos_url,
+        events_url,
+        received_events_url,
+        type,
+        site_admin,
+      } = MutualFriends[i];
+
+      const MFriends = new MutualModel({
+        login,
+        id,
+        node_id,
+        avatar_url,
+        gravatar_id,
+        url,
+        html_url,
+        followers_url,
+        following_url,
+        gists_url,
+        starred_url,
+        subscriptions_url,
+        organizations_url,
+        repos_url,
+        events_url,
+        received_events_url,
+        type,
+        site_admin,
+      });
+      await MFriends.save();
+    }
+  }, 1000);
+  return res.status(200).send("Mutal Friends Successfully Saved");
+});
 
 GithubController.post("/:username", async (req, res) => {
   let { username } = req.params;
