@@ -101,18 +101,13 @@ GithubController.post("/:username", async (req, res) => {
 });
 
 GithubController.get("/", async (req, res) => {
-  const { value, order } = req.query;
-  console.log("value:", value);
-  console.log("orders:", order);
-  let sorted_data = await UserModel.find().sort({ value: 1 });
-  console.log("sorted_data:", sorted_data);
-  return res.status(200).send({ sorted_data: sorted_data });
-});
-
-GithubController.get("/search", async (req, res) => {
-  const { username, location } = req.query;
-  console.log("username:", username);
-  console.log("location:", location);
+  let { value, order, username, location } = req.query;
+  let obj = {};
+  if (value) {
+    obj[value] = order.toString() === "asc" ? 1 : -1;
+    let sorted_data = await UserModel.find().sort(obj);
+    return res.status(200).send({ sorted_data: sorted_data });
+  }
   if (username) {
     let user = await UserModel.findOne({ login: username });
     return res.status(200).send({ user: user });
@@ -125,6 +120,23 @@ GithubController.get("/search", async (req, res) => {
   }
   return res.status(500).send("Can't find user");
 });
+
+// GithubController.get("/search", async (req, res) => {
+//   const { username, location } = req.query;
+//   console.log("username:", username);
+//   console.log("location:", location);
+//   if (username) {
+//     let user = await UserModel.findOne({ login: username });
+//     return res.status(200).send({ user: user });
+//   } else if (location) {
+//     let user = await UserModel.findOne({ location });
+//     return res.status(200).send({ user: user });
+//   } else if (username && location) {
+//     let user = await UserModel.findOne({ login: username, location });
+//     return res.status(200).send({ user: user });
+//   }
+//   return res.status(500).send("Can't find user");
+// });
 
 GithubController.patch("/:username", async (req, res) => {
   const { username } = req.params;
